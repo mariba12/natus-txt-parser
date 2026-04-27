@@ -14,3 +14,5 @@ Instalación:
 
 ```bash
 pip install -r requirements.txt
+
+Antes de ejecutar el script, edita las variables input_txt y output_dir al final del archivo.
