@@ -396,14 +396,20 @@ def parse_and_export_natus_txt(filepath, output_dir):
     outputs = export_parsed_outputs(enriched, output_dir)
     return enriched, outputs
 
-
 if __name__ == "__main__":
     input_txt = r"C:\RUTA\archivo_natus.txt"
     output_dir = r"C:\RUTA\salida_parser"
 
+    if "C:\\RUTA\\" in input_txt or "C:\\RUTA\\" in output_dir:
+        raise ValueError(
+            "Debes editar las variables 'input_txt' y 'output_dir' al final del script "
+            "para indicar la ruta real del archivo .txt de Natus y la carpeta de salida."
+        )
+
     enriched, outputs = parse_and_export_natus_txt(input_txt, output_dir)
 
     print(f"Archivo procesado: {input_txt}")
+    print(f"Codificación usada: {enriched.get('used_encoding')}")
     print(f"Bloques detectados: {len(enriched['sections'])}")
     print(f"Bloques con señal: {len(enriched['signal_blocks'])}")
     print(outputs)
