@@ -89,7 +89,35 @@ def sanitize_name(name):
     name = re.sub(r"\s+", "_", name)
     name = re.sub(r"[^\w\-\(\)\[\]\.<>]", "_", name)
     return name
+def read_text_with_fallback_encodings(filepath, encodings=None):
+    """
+    Intenta leer el archivo con varias codificaciones y devuelve:
+    - lines: lista de líneas
+    - used_encoding: codificación utilizada
+    """
+    if encodings is None:
+        encodings = ["utf-16", "utf-8", "latin-1"]
 
+    last_error = None
+
+    for enc in encodings:
+        try:
+            with open(filepath, "r", encoding=enc, errors="strict") as f:
+                lines = f.readlines()
+
+            has_section = any(SECTION_RE.match(line.strip()) for line in lines if line.strip())
+            has_keyval = any(KEYVAL_RE.match(line.strip()) for line in lines if line.strip())
+
+            if has_section or has_keyval:
+                return lines, enc
+
+        except Exception as e:
+            last_error = e
+
+    raise UnicodeError(
+        f"No se pudo leer correctamente el archivo con las codificaciones probadas: {encodings}. "
+        f"Último error: {last_error}"
+    )
 
 def parse_natus_txt(filepath):
     """
@@ -99,9 +127,8 @@ def parse_natus_txt(filepath):
     - pares clave=valor
     - señales largas partidas en varias líneas
     """
-    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-        lines = f.readlines()
-
+    lines, used_encoding = read_text_with_fallback_encodings(filepath)
+       
     header_comments = []
     sections = []
 
@@ -185,6 +212,7 @@ def parse_natus_txt(filepath):
 
     parsed = {
         "source_file": filepath,
+        "used_encoding": used_encoding,
         "header_comments": header_comments,
         "sections": sections
     }
